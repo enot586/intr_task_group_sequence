@@ -3,14 +3,16 @@
 #include <string>
 #include <stdexcept>
 #include <set>
+#include <memory>
 
 using ExeptionalSyms = std::set<char>;
+using ExeptionalSymsPtr = std::shared_ptr<ExeptionalSyms>;
 
 struct Group
 {
 
 public:
-    Group(const ExeptionalSyms& exp={})  :
+    Group(ExeptionalSymsPtr exp={})  :
         symbol('A'), number(1), expSym(exp)
     { }
 
@@ -20,10 +22,13 @@ public:
      * @param num значение номера
      * @throws std::invalid_argument в случае некорректных значений аргументов
      */
-    Group(char sym, char num, const ExeptionalSyms& exp={}) :
+    Group(char sym, char num, ExeptionalSymsPtr exp={}) :
         expSym(exp)
     {
-        if( sym >= 'A' && sym <= 'Z' && exp.find(sym) == exp.end() )
+        if ( exp && exp->find(sym) != exp->end() )
+            throw std::invalid_argument("invalid symbol argument");
+
+        if( sym >= 'A' && sym <= 'Z' )
             symbol = sym;
         else
             throw std::invalid_argument("invalid symbol argument");
@@ -74,6 +79,13 @@ public:
         return tmp;
     }
 
+    Group& operator=(const Group& gr)
+    {
+        symbol = gr.symbol;
+        number = gr.number;
+        return *this;
+    }
+
     friend bool operator!=(const Group& l, const Group& r)
     {
         return std::tie(l.symbol, l.number) != std::tie(r.symbol, r.number);
@@ -108,7 +120,7 @@ protected:
     bool HandleExptionalSyms(Group& src)
     {
         auto tmp = src.symbol;
-        while (expSym.find( tmp ) != expSym.end() && tmp <= 'Z' ) {
+        while (expSym && expSym->find( tmp ) != expSym->end() && tmp <= 'Z' ) {
             ++tmp;
         }
 
@@ -123,5 +135,5 @@ protected:
 private:
     char symbol;
     char number;
-    const ExeptionalSyms& expSym;
+    std::shared_ptr<ExeptionalSyms> expSym;
 };

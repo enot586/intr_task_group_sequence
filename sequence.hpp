@@ -5,14 +5,16 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <memory>
 
 #include "group.hpp"
 
-template<int MAX_GROUPS_NUMBER = 10>
+template<int MAX_GROUPS_NUMBER=10>
 class Sequence
 {
 public:
-    Sequence( const ExeptionalSyms& exp = { 'D', 'F', 'G', 'J', 'M', 'Q', 'V' } ) :
+    Sequence( ExeptionalSymsPtr exp =
+            std::make_shared<ExeptionalSyms>( std::initializer_list<char>({ 'D', 'F', 'G', 'J', 'M', 'Q', 'V' }) ) ) :
         exceptions( exp )
     {
         seq.reserve(MAX_GROUPS_NUMBER);
@@ -111,10 +113,10 @@ public:
 
     Sequence operator++(int)
     {
-        std::unique_lock lock(mx);
-        Sequence temp = *this;
-        Inc();
-        return temp;
+       std::unique_lock lock(mx);
+       auto temp(*this);
+       Inc();
+       return *this;
     }
 
     Sequence& operator=(const Sequence& v)
@@ -164,6 +166,6 @@ private:
     size_t current;
     size_t current_not_maximized;
     std::vector<Group> seq;
-    ExeptionalSyms exceptions;
+    ExeptionalSymsPtr exceptions;
     std::mutex mx;
 };

@@ -10,7 +10,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence ss;
+            Sequence<> ss;
             ss.FromString("A1");
             ++ss;
             return ss.Serialize() == "A2";
@@ -21,7 +21,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence ss;
+            Sequence<> ss;
             ss.FromString("A9");
             ++ss;
             return ss.Serialize() == "B1";
@@ -32,7 +32,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence ss;
+            Sequence<> ss;
             ss.FromString("Z9");
             ++ss;
             return ss.Serialize() == "A1-A1";
@@ -43,7 +43,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence ss;
+            Sequence<> ss;
             ss.FromString("A1-A1");
             ++ss;
             return ss.Serialize() == "A1-A2";
@@ -54,7 +54,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence ss;
+            Sequence<> ss;
             ss.FromString("A1-Z9");
             ++ss;
             return ss.Serialize() == "A2-A1";
@@ -64,7 +64,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence ss;
+        Sequence<> ss;
         try {
             ss.FromString("C9-Z9");
             ++ss;
@@ -75,7 +75,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence ss;
+        Sequence<> ss;
         try {
             ss.FromString("A1-D2");
             ++ss;
@@ -87,7 +87,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence ss;
+            Sequence<> ss;
             ss.FromString("Z9-Z9-Z9-Z9");
             ++ss;
             return ss.Serialize() == "A1-A1-A1-A1-A1";
@@ -98,7 +98,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try {
-            Sequence ss;
+            Sequence<> ss;
             ss.FromString("Z9-Z9-A1-Z9");
             ++ss;
             return ss.Serialize() == "Z9-Z9-A2-A1";
@@ -108,7 +108,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence ss;
+        Sequence<> ss;
         try {
             ss.FromString("A1-Z9-Z9-Z9");
             ++ss;
@@ -119,7 +119,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence ss;
+        Sequence<> ss;
         try {
             ss.FromString("A1-Z9-Z9-Z9");
             ++ss;
@@ -127,7 +127,20 @@ std::vector< std::function<bool(void)> > basis_tests = {
         } catch (const std::invalid_argument& ex) {
             return true;
         }
-    }
+    }/*,
+    []()
+    {
+        Sequence ss, dd;
+        try {
+            ss.FromString("A4");
+            dd = ss;
+            ss++;
+            dd++;
+            return dd.Serialize() == "A5" && dd.Serialize() == ss.Serialize();
+        } catch (const std::invalid_argument& ex) {
+            return false;
+        }
+    }*/
 };
 
 int main()
