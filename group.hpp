@@ -1,20 +1,35 @@
 #pragma once
 
-#include <string>
-#include <stdexcept>
-#include <set>
 #include <memory>
+#include <set>
+#include <stdexcept>
+#include <string>
 
 using ExeptionalSyms = std::set<char>;
 using ExeptionalSymsPtr = std::shared_ptr<ExeptionalSyms>;
 
-struct Group
+
+class DefaultExceptionCheck
+{
+public:
+    static ExeptionalSyms& getExeptionalSyms() { static ExeptionalSyms es{ 'D', 'F', 'G', 'J', 'M', 'Q', 'V' }; return es; }
+
+    bool CheckExceptionList(char sym, char num)
+    {
+        bool isValidNumber = num > 0 && num <= 9;
+        bool isValidSymbol = ( sym >= 'A' && sym <= 'Z' )
+                && getExeptionalSyms().find(sym) == getExeptionalSyms().end();
+        return isValidNumber && isValidSymbol;
+    }
+};
+
+template<class ExceptionCheck = DefaultExceptionCheck>
+class Group : public ExceptionCheck
 {
 
 public:
-    Group(ExeptionalSymsPtr exp={})  :
-        symbol('A'), number(1), expSym(exp)
-    { }
+    Group()
+    { reset(); }
 
     /**
      * @brief Group
@@ -22,21 +37,29 @@ public:
      * @param num значение номера
      * @throws std::invalid_argument в случае некорректных значений аргументов
      */
-    Group(char sym, char num, ExeptionalSymsPtr exp={}) :
-        expSym(exp)
+    Group(char sym, char num)
     {
-        if ( exp && exp->find(sym) != exp->end() )
+        if ( !ExceptionCheck::CheckExceptionList(sym, num) )
             throw std::invalid_argument("invalid symbol argument");
 
-        if( sym >= 'A' && sym <= 'Z' )
-            symbol = sym;
-        else
-            throw std::invalid_argument("invalid symbol argument");
+        symbol = sym;
+        number = num;
+    }
 
-        if(num > 0 && num <= 9)
-            number = num;
-        else
-            throw std::invalid_argument("invalid number argument");
+    Group(const std::string& v)
+    {
+        if ( !v.empty() ) {
+            if (v.size() < 2 || v.size() > 2)
+                throw std::invalid_argument("invalid number argument");
+
+            symbol = v[0];
+            number = v[1]-48;
+        } else {
+            reset();
+        }
+
+        if ( !ExceptionCheck::CheckExceptionList(symbol, number) )
+            throw std::invalid_argument("invalid symbol argument");
     }
 
     bool isMax() const
@@ -47,7 +70,7 @@ public:
     bool TryIncrement() {
         Group tmp = *this;
         ++tmp;
-        if ( HandleExptionalSyms(tmp) ) {
+        if ( HandleExeptionalSyms(tmp) ) {
             symbol = tmp.symbol;
             number = tmp.number;
             return true;
@@ -117,10 +140,10 @@ protected:
         return *this;
     }
 
-    bool HandleExptionalSyms(Group& src)
+    bool HandleExeptionalSyms(Group& src)
     {
         auto tmp = src.symbol;
-        while (expSym && expSym->find( tmp ) != expSym->end() && tmp <= 'Z' ) {
+        while ( !ExceptionCheck::CheckExceptionList(tmp, src.number) && tmp <= 'Z' ) {
             ++tmp;
         }
 
@@ -135,5 +158,4 @@ protected:
 private:
     char symbol;
     char number;
-    std::shared_ptr<ExeptionalSyms> expSym;
 };

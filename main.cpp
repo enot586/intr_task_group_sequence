@@ -6,11 +6,13 @@
 
 #include "sequence.hpp"
 
+using Id = Sequence<DefaultGroup>;
+
 std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence<> ss;
+            Id ss;
             ss.FromString("A1");
             ++ss;
             return ss.Serialize() == "A2";
@@ -21,7 +23,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence<> ss;
+            Id ss;
             ss.FromString("A9");
             ++ss;
             return ss.Serialize() == "B1";
@@ -32,7 +34,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence<> ss;
+            Id ss;
             ss.FromString("Z9");
             ++ss;
             return ss.Serialize() == "A1-A1";
@@ -43,7 +45,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence<> ss;
+            Id ss;
             ss.FromString("A1-A1");
             ++ss;
             return ss.Serialize() == "A1-A2";
@@ -54,7 +56,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence<> ss;
+            Id ss;
             ss.FromString("A1-Z9");
             ++ss;
             return ss.Serialize() == "A2-A1";
@@ -64,7 +66,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence<> ss;
+        Id ss;
         try {
             ss.FromString("C9-Z9");
             ++ss;
@@ -75,7 +77,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence<> ss;
+        Id ss;
         try {
             ss.FromString("A1-D2");
             ++ss;
@@ -87,7 +89,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try{
-            Sequence<> ss;
+            Id ss;
             ss.FromString("Z9-Z9-Z9-Z9");
             ++ss;
             return ss.Serialize() == "A1-A1-A1-A1-A1";
@@ -98,7 +100,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     []()
     {
         try {
-            Sequence<> ss;
+            Id ss;
             ss.FromString("Z9-Z9-A1-Z9");
             ++ss;
             return ss.Serialize() == "Z9-Z9-A2-A1";
@@ -108,7 +110,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence<> ss;
+        Id ss;
         try {
             ss.FromString("A1-Z9-Z9-Z9");
             ++ss;
@@ -119,7 +121,7 @@ std::vector< std::function<bool(void)> > basis_tests = {
     },
     []()
     {
-        Sequence<> ss;
+        Id ss;
         try {
             ss.FromString("A1-Z9-Z9-Z9");
             ++ss;
@@ -127,10 +129,10 @@ std::vector< std::function<bool(void)> > basis_tests = {
         } catch (const std::invalid_argument& ex) {
             return true;
         }
-    }/*,
+    },
     []()
     {
-        Sequence ss, dd;
+        Id ss, dd;
         try {
             ss.FromString("A4");
             dd = ss;
@@ -140,7 +142,27 @@ std::vector< std::function<bool(void)> > basis_tests = {
         } catch (const std::invalid_argument& ex) {
             return false;
         }
-    }*/
+    },
+    []()
+    {
+        Id ss{ {"A1"}, {"A1"}, {"A1"}, {"A1"} };
+        try {
+            ++ss;
+            return ss.Serialize() == "A1-A1-A1-A2";
+        } catch (const std::invalid_argument& ex) {
+            return false;
+        }
+    },
+    []()
+    {
+        Id ss{ {'A', 1}, {'A', 1}, {'A', 1}, {'A', 1} };
+        try {
+            ++ss;
+            return ss.Serialize() == "A1-A1-A1-A2";
+        } catch (const std::invalid_argument& ex) {
+            return false;
+        }
+    }
 };
 
 int main()
@@ -154,7 +176,7 @@ int main()
     }
 /*
     try {
-        Sequence ss;
+        Id ss;
         ss.FromString("A1-A1-A1-A1");
         for (auto i =0; i < 600000; ++i) {
              std::cout << ss.Serialize() << "\n" << std::flush;

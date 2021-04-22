@@ -9,18 +9,31 @@
 
 #include "group.hpp"
 
-template<int MAX_GROUPS_NUMBER=10>
+using DefaultGroup = Group<DefaultExceptionCheck>;
+
+template<class GroupType>
 class Sequence
 {
 public:
-    Sequence( ExeptionalSymsPtr exp =
-            std::make_shared<ExeptionalSyms>( std::initializer_list<char>({ 'D', 'F', 'G', 'J', 'M', 'Q', 'V' }) ) ) :
-        exceptions( exp )
+    Sequence()
     {
-        seq.reserve(MAX_GROUPS_NUMBER);
+        seq.reserve(max_size);
         Inc();
         current = 0;
         current_not_maximized = 0;
+    }
+
+    Sequence( std::initializer_list<GroupType> l ) :
+        seq( l )
+    {
+        current = seq.size()-1;
+        current_not_maximized = current;
+        for (auto i = 0; i < seq.size(); ++i) {
+            if ( !seq[i].isMax() ) {
+                current_not_maximized = i;
+                break;
+            }
+        }
     }
 
     Sequence(const Sequence& v)
@@ -30,7 +43,6 @@ public:
         current = v.current;
         current_not_maximized = v.current_not_maximized;
         seq = v.seq;
-        exceptions = v.exceptions;
     }
 
     /**
@@ -42,7 +54,7 @@ public:
     {
         std::unique_lock lock(mx);
 
-        std::vector<Group> tmp;
+        std::vector<GroupType> tmp;
         std::stringstream ss(src);
 
         while ( ss.good() ) {
@@ -54,14 +66,14 @@ public:
             else
                 throw std::invalid_argument("Couldn't get a numeric value");
 
-            Group gr( symbol, number, exceptions );
+            GroupType gr( symbol, number );
 
             tmp.push_back(gr);
 
             if( tmp.size() > 2 ) {
                 size_t pre_last = tmp.size()-2;
                 size_t pre_pre_last = tmp.size()-3;
-                if ( tmp[pre_pre_last] != Group('Z', 9) && tmp[pre_last] != Group() ) {
+                if ( tmp[pre_pre_last] != GroupType('Z', 9) && tmp[pre_last] != GroupType() ) {
                     throw std::invalid_argument("invalid identificator format");
                 }
             }
@@ -125,7 +137,6 @@ public:
         seq = v.seq;
         current = v.current;
         current_not_maximized = v.current_not_maximized;
-        exceptions = v.exceptions;
 
         return *this;
     }
@@ -138,11 +149,11 @@ protected:
             } else {
                 size_t last = (seq.size()-1);
                 if ( seq[current_not_maximized].isMax() && current_not_maximized == last ) {
-                    if (seq.size() < MAX_GROUPS_NUMBER) {
+                    if (seq.size() < max_size) {
                         for (auto& el : seq)
                             el.reset();
 
-                        seq.push_back( Group(exceptions) );
+                        seq.push_back( DefaultGroup() );
                         current = seq.size()-1;
                         current_not_maximized = 0;
                     }
@@ -156,16 +167,16 @@ protected:
                 }
             }
         } else {
-            seq.push_back( Group(exceptions) );
+            seq.push_back( GroupType() );
         }
 
         return *this;
     }
 
 private:
+    static const size_t max_size = 10;
     size_t current;
     size_t current_not_maximized;
-    std::vector<Group> seq;
-    ExeptionalSymsPtr exceptions;
+    std::vector<GroupType> seq;
     std::mutex mx;
 };
